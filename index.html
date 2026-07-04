@@ -2,296 +2,222 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>帅哥基金 SGJJ</title>
-    <style>
-        /* 浅蓝色背景与中文楷体设置 */
-        body {
-            background-color: #E1F5FE; /* 浅蓝色 */
-            font-family: "KaiTi", "楷体", STKaiti, serif; /* 中文楷体 */
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            color: #333;
-        }
-        .container {
-            background-color: white;
-            width: 90%;
-            max-width: 450px;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-        h1, h2 {
-            color: #0277BD;
-            margin-top: 0;
-        }
-        .hidden {
-            display: none;
-        }
-        .datetime {
-            font-size: 16px;
-            color: #666;
-            margin-bottom: 20px;
-        }
-        .total-amount {
-            font-size: 40px;
-            font-weight: bold;
-            color: #D32F2F;
-            margin: 20px 0;
-        }
-        .input-group {
-            margin-bottom: 15px;
-            text-align: left;
-        }
-        .input-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #B3E5FC;
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-family: "KaiTi", "楷体", STKaiti, serif;
-            font-size: 16px;
-        }
-        button {
-            background-color: #03A9F4;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            font-size: 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-family: "KaiTi", "楷体", STKaiti, serif;
-            margin: 5px 0;
-            width: 100%;
-        }
-        button:hover {
-            background-color: #0288D1;
-        }
-        .btn-secondary {
-            background-color: #4FC3F7;
-        }
-        .btn-secondary:hover {
-            background-color: #29B6F6;
-        }
-        .btn-danger {
-            background-color: #E57373;
-        }
-        .btn-danger:hover {
-            background-color: #F44336;
-        }
-        hr {
-            border: 0;
-            height: 1px;
-            background-color: #E1F5FE;
-            margin: 20px 0;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>帅哥基金计划 2026-2028</title>
+    
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <link href="https://fonts.cdnfonts.com/css/sf-pro-display" rel="stylesheet">
+    
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/glass.css">
+    <link rel="stylesheet" href="css/animation.css">
+    <link rel="stylesheet" href="css/mobile.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
 </head>
-<body>
+<body class="theme-system">
+    <div id="toast-container"></div>
+    <div id="loading-overlay" class="glass hidden"><div id="lottie-loading"></div></div>
 
-    <div class="container">
-        <div id="datetimeDisplay" class="datetime"></div>
-
-        <div id="loginPage">
-            <h1>帅哥基金 SGJJ</h1>
-            <h2>用户登录</h2>
-            <div class="input-group">
-                <label>用户名：</label>
-                <input type="text" id="loginUsername" placeholder="请输入用户名">
-            </div>
-            <div class="input-group">
-                <label>密码：</label>
-                <input type="password" id="loginPassword" placeholder="请输入密码">
-            </div>
-            <button onclick="login()">登录</button>
-            <p style="font-size: 12px; color: #888;">提示：初始默认账号 admin，密码 123456</p>
+    <main id="login-view" class="view active fade-in glass-bg">
+        <div class="glass-card login-card scale-in">
+            <img src="assets/logo.svg" alt="Logo" class="logo">
+            <h2>Project SGJJ2628</h2>
+            <form id="login-form">
+                <div class="input-group">
+                    <span class="material-icons-round">person</span>
+                    <input type="text" id="username" placeholder="用户名" required autocomplete="username">
+                </div>
+                <div class="input-group">
+                    <span class="material-icons-round">lock</span>
+                    <input type="password" id="password" placeholder="密码" required autocomplete="current-password">
+                    <span class="material-icons-round toggle-pwd" id="toggle-login-pwd">visibility</span>
+                </div>
+                <label class="remember-me">
+                    <input type="checkbox" id="remember-me"> 保持登录状态
+                </label>
+                <button type="submit" class="liquid-btn ripple">登录</button>
+            </form>
         </div>
+    </main>
 
-        <div id="mainPage" class="hidden">
-            <h1>帅哥基金 SGJJ</h1>
-            <h3>欢迎您，<span id="currentUserName"></span></h3>
-            <p>基金总金额 (元)</p>
-            <div class="total-amount" id="totalAmountDisplay">0.00</div>
-            
-            <button onclick="switchPage('subPage')">进入次页 (管理资金/用户)</button>
-            <button class="btn-danger" onclick="logout()">退出登录</button>
-        </div>
+    <div id="app-view" class="view hidden">
+        <nav class="sidebar glass-panel slide-right">
+            <div class="sidebar-header">
+                <img src="assets/logo.svg" alt="Logo" style="width: 40px; margin-right: 10px;">
+                <h3>SGJJ2628</h3>
+            </div>
+            <ul class="nav-links">
+                <li data-target="dashboard" class="active"><span class="material-icons-round">dashboard</span> 主页</li>
+                <li data-target="users"><span class="material-icons-round">group_add</span> 用户管理</li>
+                <li data-target="deposit"><span class="material-icons-round">arrow_circle_up</span> 存入</li>
+                <li data-target="expense"><span class="material-icons-round">arrow_circle_down</span> 支出</li>
+                <li data-target="report"><span class="material-icons-round">receipt_long</span> 阅读总结</li>
+                <li data-target="charts"><span class="material-icons-round">bar_chart</span> 统计图</li>
+                <li data-target="settings"><span class="material-icons-round">settings</span> 系统设置</li>
+            </ul>
+            <div class="sidebar-footer">
+                <button id="logout-btn" class="liquid-btn error ripple"><span class="material-icons-round">logout</span> 退出登录</button>
+            </div>
+        </nav>
 
-        <div id="subPage" class="hidden">
-            <h2>资金与用户管理</h2>
-            
-            <div class="input-group">
-                <label>金额 (元)：</label>
-                <input type="number" id="transactionAmount" placeholder="输入金额">
+        <main class="content-area">
+            <header class="top-bar glass-panel dynamic-island">
+                <h2>Project SGJJ2628</h2>
+                <div class="time-display" id="clock">YYYY/MM/DD HH:mm:ss</div>
+            </header>
+
+            <div class="scroll-container">
+                <section id="dashboard" class="page active fade-in">
+                    <div class="balance-card glass-card scale-in">
+                        <h3>基金总余额</h3>
+                        <div class="balance-amount"><span class="currency">RM</span> <span id="total-balance" class="counter">0.00</span></div>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-card glass-card"><h4>今日收入</h4><p id="today-in" class="counter text-success">0.00</p></div>
+                        <div class="stat-card glass-card"><h4>今日支出</h4><p id="today-out" class="counter text-error">0.00</p></div>
+                        <div class="stat-card glass-card"><h4>本月收入</h4><p id="month-in" class="counter text-success">0.00</p></div>
+                        <div class="stat-card glass-card"><h4>本月支出</h4><p id="month-out" class="counter text-error">0.00</p></div>
+                        <div class="stat-card glass-card"><h4>总收入</h4><p id="total-in" class="counter text-success">0.00</p></div>
+                        <div class="stat-card glass-card"><h4>总支出</h4><p id="total-out" class="counter text-error">0.00</p></div>
+                    </div>
+                </section>
+
+                <section id="users" class="page hidden fade-in">
+                    <div class="glass-card">
+                        <h3>新增用户</h3>
+                        <form id="add-user-form">
+                            <input type="text" id="new-username" placeholder="新用户名" required>
+                            <input type="password" id="new-password" placeholder="密码" required>
+                            <input type="password" id="new-password-confirm" placeholder="确认密码" required>
+                            <button type="submit" class="liquid-btn ripple">添加用户</button>
+                        </form>
+                        <div class="table-container glass-panel mt-2">
+                            <table id="users-table">
+                                <thead><tr><th>用户名</th><th>操作</th></tr></thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="deposit" class="page hidden fade-in">
+                    <div class="glass-card form-card">
+                        <h3>存入资金</h3>
+                        <form id="deposit-form">
+                            <input type="datetime-local" id="dep-date" required>
+                            <input type="number" step="0.01" id="dep-amount" placeholder="金额 (RM)" required>
+                            <input type="text" id="dep-user" placeholder="存入人" required>
+                            <input type="text" id="dep-note" placeholder="备注">
+                            <button type="submit" class="liquid-btn ripple success">确认存入</button>
+                        </form>
+                    </div>
+                </section>
+
+                <section id="expense" class="page hidden fade-in">
+                    <div class="glass-card form-card">
+                        <h3>支出资金</h3>
+                        <form id="expense-form">
+                            <input type="datetime-local" id="exp-date" required>
+                            <input type="number" step="0.01" id="exp-amount" placeholder="金额 (RM)" required>
+                            <input type="text" id="exp-user" placeholder="负责人" required>
+                            <input type="text" id="exp-note" placeholder="用途" required>
+                            <button type="submit" class="liquid-btn ripple error">确认支出</button>
+                        </form>
+                    </div>
+                </section>
+
+                <section id="report" class="page hidden fade-in">
+                    <div class="glass-card">
+                        <div class="report-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h3>资金流水纪录</h3>
+                            <button id="export-pdf" class="liquid-btn ripple"><span class="material-icons-round" style="vertical-align: middle;">print</span> 导出 PDF</button>
+                        </div>
+                        <div class="filters" style="display: flex; gap: 10px; margin-bottom: 20px;">
+                            <input type="text" id="search-record" placeholder="搜索备注/人员..." style="flex: 1;">
+                            <select id="filter-type">
+                                <option value="all">全部记录</option>
+                                <option value="in">仅收入</option>
+                                <option value="out">仅支出</option>
+                            </select>
+                            <select id="sort-record">
+                                <option value="date-desc">日期 (倒序)</option>
+                                <option value="date-asc">日期 (正序)</option>
+                                <option value="amount-desc">金额 (从大到小)</option>
+                                <option value="amount-asc">金额 (从小到大)</option>
+                            </select>
+                        </div>
+                        <div class="table-container glass-panel">
+                            <table id="records-table">
+                                <thead>
+                                    <tr>
+                                        <th>时间</th>
+                                        <th>类型</th>
+                                        <th>金额 (RM)</th>
+                                        <th>人员</th>
+                                        <th>备注</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        <div id="pagination" class="pagination mt-2" style="display: flex; justify-content: center; gap: 10px;"></div>
+                        <div class="summary-stats mt-2 glass-panel" style="display: flex; justify-content: space-between; padding: 15px;">
+                            <span>记录数: <b id="rec-count">0</b></span>
+                            <span>总收: <b id="rec-in" class="text-success">0.00</b></span>
+                            <span>总支: <b id="rec-out" class="text-error">0.00</b></span>
+                            <span>当前列表结余: <b id="rec-bal">0.00</b></span>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="charts" class="page hidden fade-in">
+                    <div class="charts-grid">
+                        <div class="chart-container glass-card"><canvas id="lineChart"></canvas></div>
+                        <div class="chart-container glass-card"><canvas id="barChart"></canvas></div>
+                        <div class="chart-container glass-card"><canvas id="pieChart"></canvas></div>
+                        <div class="chart-container glass-card"><canvas id="areaChart"></canvas></div>
+                    </div>
+                </section>
+
+                <section id="settings" class="page hidden fade-in">
+                    <div class="glass-card">
+                        <h3>系统设置</h3>
+                        <div class="setting-item mt-2">
+                            <span style="display: block; margin-bottom: 10px;">主题模式</span>
+                            <select id="theme-selector">
+                                <option value="system">跟随系统 (System)</option>
+                                <option value="light">浅色模式 (Light)</option>
+                                <option value="dark">深色模式 (Dark)</option>
+                            </select>
+                        </div>
+                        <div class="setting-item mt-2">
+                            <span style="display: block; margin-bottom: 10px;">数据备份与恢复 (JSON)</span>
+                            <div class="btn-group" style="display: flex; gap: 10px;">
+                                <button id="btn-export" class="liquid-btn ripple">导出 JSON</button>
+                                <input type="file" id="file-import" accept=".json" hidden>
+                                <button id="btn-import" class="liquid-btn ripple" onclick="document.getElementById('file-import').click()">导入 JSON</button>
+                            </div>
+                        </div>
+                        <div class="setting-item mt-2">
+                            <span style="display: block; margin-bottom: 10px;">危险操作</span>
+                            <button id="btn-clear-db" class="liquid-btn ripple error">清空数据库</button>
+                        </div>
+                        <div class="sys-info mt-2 glass-panel">
+                            <p><strong>系统版本:</strong> v1.0.0 (SGJJ2628)</p>
+                            <p id="browser-info"></p>
+                            <p id="storage-info"></p>
+                        </div>
+                    </div>
+                </section>
             </div>
-            <button onclick="handleTransaction('deposit')">存入资金</button>
-            <button class="btn-secondary" onclick="handleTransaction('withdraw')">支出资金</button>
-            
-            <hr>
-            
-            <button onclick="monthlySettlement()">月度结算</button>
-            
-            <hr>
-            
-            <h3>添加新用户</h3>
-            <div class="input-group">
-                <label>新用户名：</label>
-                <input type="text" id="newUsername" placeholder="新用户名">
-            </div>
-            <div class="input-group">
-                <label>新密码：</label>
-                <input type="password" id="newPassword" placeholder="新密码">
-            </div>
-            <button class="btn-secondary" onclick="addUser()">添加用户</button>
-            
-            <hr>
-            <button class="btn-danger" onclick="switchPage('mainPage')">返回主页</button>
-        </div>
+        </main>
     </div>
 
-    <script>
-        // --- 初始化数据 ---
-        let totalAmount = 0;
-        let users = [];
-
-        // 从 LocalStorage 加载保存的数据
-        function loadData() {
-            const savedAmount = localStorage.getItem('sgjj_amount');
-            if (savedAmount) totalAmount = parseFloat(savedAmount);
-
-            const savedUsers = localStorage.getItem('sgjj_users');
-            if (savedUsers) {
-                users = JSON.parse(savedUsers);
-            } else {
-                // 如果没有用户，初始化一个默认管理员账号
-                users = [{ username: 'admin', password: '123456' }];
-                saveData();
-            }
-        }
-
-        // 保存数据到 LocalStorage
-        function saveData() {
-            localStorage.setItem('sgjj_amount', totalAmount.toFixed(2));
-            localStorage.setItem('sgjj_users', JSON.stringify(users));
-        }
-
-        // --- 时间更新功能 (每秒更新) ---
-        function updateTime() {
-            const now = new Date();
-            const dateStr = now.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' });
-            const timeStr = now.toLocaleTimeString('zh-CN', { hour12: false });
-            document.getElementById('datetimeDisplay').innerText = `${dateStr} ${timeStr}`;
-        }
-        setInterval(updateTime, 1000);
-        updateTime(); // 立即执行一次
-
-        // --- 页面切换逻辑 ---
-        function switchPage(pageId) {
-            document.getElementById('loginPage').classList.add('hidden');
-            document.getElementById('mainPage').classList.add('hidden');
-            document.getElementById('subPage').classList.add('hidden');
-            document.getElementById(pageId).classList.remove('hidden');
-
-            if (pageId === 'mainPage') {
-                updateAmountDisplay();
-            }
-        }
-
-        // --- 功能：登录与登出 ---
-        function login() {
-            const userIn = document.getElementById('loginUsername').value;
-            const passIn = document.getElementById('loginPassword').value;
-
-            const user = users.find(u => u.username === userIn && u.password === passIn);
-            if (user) {
-                document.getElementById('currentUserName').innerText = user.username;
-                document.getElementById('loginUsername').value = '';
-                document.getElementById('loginPassword').value = '';
-                switchPage('mainPage');
-            } else {
-                alert('用户名或密码错误！');
-            }
-        }
-
-        function logout() {
-            switchPage('loginPage');
-        }
-
-        // --- 功能：更新金额显示 ---
-        function updateAmountDisplay() {
-            document.getElementById('totalAmountDisplay').innerText = totalAmount.toFixed(2);
-        }
-
-        // --- 功能：存入与支出 ---
-        function handleTransaction(type) {
-            const amountInput = document.getElementById('transactionAmount').value;
-            const amount = parseFloat(amountInput);
-
-            if (isNaN(amount) || amount <= 0) {
-                alert('请输入有效的金额！');
-                return;
-            }
-
-            if (type === 'deposit') {
-                totalAmount += amount;
-                alert(`成功存入 ${amount} 元`);
-            } else if (type === 'withdraw') {
-                if (amount > totalAmount) {
-                    alert('余额不足！');
-                    return;
-                }
-                totalAmount -= amount;
-                alert(`成功支出 ${amount} 元`);
-            }
-            
-            document.getElementById('transactionAmount').value = ''; // 清空输入框
-            saveData(); // 保存修改
-        }
-
-        // --- 功能：月度结算 ---
-        function monthlySettlement() {
-            // 简单的月度结算逻辑示范（可根据需要拓展，如记录日志、计算利息等）
-            alert(`【月度结算完成】\n当前基金总额为：${totalAmount.toFixed(2)} 元\n数据已存档。`);
-            saveData();
-        }
-
-        // --- 功能：添加用户 ---
-        function addUser() {
-            const newU = document.getElementById('newUsername').value;
-            const newP = document.getElementById('newPassword').value;
-
-            if (newU.trim() === '' || newP.trim() === '') {
-                alert('用户名和密码不能为空！');
-                return;
-            }
-
-            // 检查用户名是否已存在
-            const exists = users.find(u => u.username === newU);
-            if (exists) {
-                alert('该用户名已存在！');
-                return;
-            }
-
-            users.push({ username: newU, password: newP });
-            saveData(); // 保存新用户
-            alert(`成功添加用户：${newU}`);
-            
-            document.getElementById('newUsername').value = '';
-            document.getElementById('newPassword').value = '';
-        }
-
-        // 启动时加载数据
-        loadData();
-    </script>
+    <script type="module" src="js/app.js"></script>
 </body>
 </html>

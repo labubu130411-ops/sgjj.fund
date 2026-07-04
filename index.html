@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>帅哥基金 SGJJ</title>
+    <style>
+        /* 浅蓝色背景与中文楷体设置 */
+        body {
+            background-color: #E1F5FE; /* 浅蓝色 */
+            font-family: "KaiTi", "楷体", STKaiti, serif; /* 中文楷体 */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #333;
+        }
+        .container {
+            background-color: white;
+            width: 90%;
+            max-width: 450px;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        h1, h2 {
+            color: #0277BD;
+            margin-top: 0;
+        }
+        .hidden {
+            display: none;
+        }
+        .datetime {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .total-amount {
+            font-size: 40px;
+            font-weight: bold;
+            color: #D32F2F;
+            margin: 20px 0;
+        }
+        .input-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #B3E5FC;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-family: "KaiTi", "楷体", STKaiti, serif;
+            font-size: 16px;
+        }
+        button {
+            background-color: #03A9F4;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: "KaiTi", "楷体", STKaiti, serif;
+            margin: 5px 0;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #0288D1;
+        }
+        .btn-secondary {
+            background-color: #4FC3F7;
+        }
+        .btn-secondary:hover {
+            background-color: #29B6F6;
+        }
+        .btn-danger {
+            background-color: #E57373;
+        }
+        .btn-danger:hover {
+            background-color: #F44336;
+        }
+        hr {
+            border: 0;
+            height: 1px;
+            background-color: #E1F5FE;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div id="datetimeDisplay" class="datetime"></div>
+
+        <div id="loginPage">
+            <h1>帅哥基金 SGJJ</h1>
+            <h2>用户登录</h2>
+            <div class="input-group">
+                <label>用户名：</label>
+                <input type="text" id="loginUsername" placeholder="请输入用户名">
+            </div>
+            <div class="input-group">
+                <label>密码：</label>
+                <input type="password" id="loginPassword" placeholder="请输入密码">
+            </div>
+            <button onclick="login()">登录</button>
+            <p style="font-size: 12px; color: #888;">提示：初始默认账号 admin，密码 123456</p>
+        </div>
+
+        <div id="mainPage" class="hidden">
+            <h1>帅哥基金 SGJJ</h1>
+            <h3>欢迎您，<span id="currentUserName"></span></h3>
+            <p>基金总金额 (元)</p>
+            <div class="total-amount" id="totalAmountDisplay">0.00</div>
+            
+            <button onclick="switchPage('subPage')">进入次页 (管理资金/用户)</button>
+            <button class="btn-danger" onclick="logout()">退出登录</button>
+        </div>
+
+        <div id="subPage" class="hidden">
+            <h2>资金与用户管理</h2>
+            
+            <div class="input-group">
+                <label>金额 (元)：</label>
+                <input type="number" id="transactionAmount" placeholder="输入金额">
+            </div>
+            <button onclick="handleTransaction('deposit')">存入资金</button>
+            <button class="btn-secondary" onclick="handleTransaction('withdraw')">支出资金</button>
+            
+            <hr>
+            
+            <button onclick="monthlySettlement()">月度结算</button>
+            
+            <hr>
+            
+            <h3>添加新用户</h3>
+            <div class="input-group">
+                <label>新用户名：</label>
+                <input type="text" id="newUsername" placeholder="新用户名">
+            </div>
+            <div class="input-group">
+                <label>新密码：</label>
+                <input type="password" id="newPassword" placeholder="新密码">
+            </div>
+            <button class="btn-secondary" onclick="addUser()">添加用户</button>
+            
+            <hr>
+            <button class="btn-danger" onclick="switchPage('mainPage')">返回主页</button>
+        </div>
+    </div>
+
+    <script>
+        // --- 初始化数据 ---
+        let totalAmount = 0;
+        let users = [];
+
+        // 从 LocalStorage 加载保存的数据
+        function loadData() {
+            const savedAmount = localStorage.getItem('sgjj_amount');
+            if (savedAmount) totalAmount = parseFloat(savedAmount);
+
+            const savedUsers = localStorage.getItem('sgjj_users');
+            if (savedUsers) {
+                users = JSON.parse(savedUsers);
+            } else {
+                // 如果没有用户，初始化一个默认管理员账号
+                users = [{ username: 'admin', password: '123456' }];
+                saveData();
+            }
+        }
+
+        // 保存数据到 LocalStorage
+        function saveData() {
+            localStorage.setItem('sgjj_amount', totalAmount.toFixed(2));
+            localStorage.setItem('sgjj_users', JSON.stringify(users));
+        }
+
+        // --- 时间更新功能 (每秒更新) ---
+        function updateTime() {
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' });
+            const timeStr = now.toLocaleTimeString('zh-CN', { hour12: false });
+            document.getElementById('datetimeDisplay').innerText = `${dateStr} ${timeStr}`;
+        }
+        setInterval(updateTime, 1000);
+        updateTime(); // 立即执行一次
+
+        // --- 页面切换逻辑 ---
+        function switchPage(pageId) {
+            document.getElementById('loginPage').classList.add('hidden');
+            document.getElementById('mainPage').classList.add('hidden');
+            document.getElementById('subPage').classList.add('hidden');
+            document.getElementById(pageId).classList.remove('hidden');
+
+            if (pageId === 'mainPage') {
+                updateAmountDisplay();
+            }
+        }
+
+        // --- 功能：登录与登出 ---
+        function login() {
+            const userIn = document.getElementById('loginUsername').value;
+            const passIn = document.getElementById('loginPassword').value;
+
+            const user = users.find(u => u.username === userIn && u.password === passIn);
+            if (user) {
+                document.getElementById('currentUserName').innerText = user.username;
+                document.getElementById('loginUsername').value = '';
+                document.getElementById('loginPassword').value = '';
+                switchPage('mainPage');
+            } else {
+                alert('用户名或密码错误！');
+            }
+        }
+
+        function logout() {
+            switchPage('loginPage');
+        }
+
+        // --- 功能：更新金额显示 ---
+        function updateAmountDisplay() {
+            document.getElementById('totalAmountDisplay').innerText = totalAmount.toFixed(2);
+        }
+
+        // --- 功能：存入与支出 ---
+        function handleTransaction(type) {
+            const amountInput = document.getElementById('transactionAmount').value;
+            const amount = parseFloat(amountInput);
+
+            if (isNaN(amount) || amount <= 0) {
+                alert('请输入有效的金额！');
+                return;
+            }
+
+            if (type === 'deposit') {
+                totalAmount += amount;
+                alert(`成功存入 ${amount} 元`);
+            } else if (type === 'withdraw') {
+                if (amount > totalAmount) {
+                    alert('余额不足！');
+                    return;
+                }
+                totalAmount -= amount;
+                alert(`成功支出 ${amount} 元`);
+            }
+            
+            document.getElementById('transactionAmount').value = ''; // 清空输入框
+            saveData(); // 保存修改
+        }
+
+        // --- 功能：月度结算 ---
+        function monthlySettlement() {
+            // 简单的月度结算逻辑示范（可根据需要拓展，如记录日志、计算利息等）
+            alert(`【月度结算完成】\n当前基金总额为：${totalAmount.toFixed(2)} 元\n数据已存档。`);
+            saveData();
+        }
+
+        // --- 功能：添加用户 ---
+        function addUser() {
+            const newU = document.getElementById('newUsername').value;
+            const newP = document.getElementById('newPassword').value;
+
+            if (newU.trim() === '' || newP.trim() === '') {
+                alert('用户名和密码不能为空！');
+                return;
+            }
+
+            // 检查用户名是否已存在
+            const exists = users.find(u => u.username === newU);
+            if (exists) {
+                alert('该用户名已存在！');
+                return;
+            }
+
+            users.push({ username: newU, password: newP });
+            saveData(); // 保存新用户
+            alert(`成功添加用户：${newU}`);
+            
+            document.getElementById('newUsername').value = '';
+            document.getElementById('newPassword').value = '';
+        }
+
+        // 启动时加载数据
+        loadData();
+    </script>
+</body>
+</html>
